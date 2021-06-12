@@ -1,0 +1,95 @@
+<html lang="ru"  xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaLessons</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=dbd036b8-9951-4c5c-8a4a-17c1bb44e84c&lang=ru_RU" type="text/javascript"></script>
+    <script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script src="https://yastatic.net/s3/mapsapi-jslibs/heatmap/0.0.1/heatmap.min.js" type="text/javascript"></script>
+
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/newpit.js"></script>
+</head>
+
+<body>
+
+
+<script type="text/javascript" >
+
+    ymaps.ready(init);
+    var myMap;
+    var heatmap;
+
+    function init(){
+        myMap = new ymaps.Map("map", {
+            center: [55.0282171, 82.9234509],
+            zoom: 10,
+            behaviors: ['default', 'scrollZoom'],
+            controls: ["zoomControl", "fullscreenControl", "searchControl"]
+        });
+
+        var button = new ymaps.control.Button({
+            data: {
+                content: 'Показать тепловую карту',
+                title: 'Click to see the heatmap'
+            },
+            options: {
+                selectOnClick: false,
+                maxWidth: [30, 200, 250]
+            }
+        });
+        button.events
+            .add(
+                'press',
+                function () {
+                    updateData();
+                }
+            )
+        myMap.controls.add(button, { float: 'right', floatIndex: 100 });
+    }
+    function updateData(){
+        $.ajax({
+            type: "GET",
+            url: "/api/allpoints/",
+            dataType: "json",
+            success: function(data1) {
+                ymaps.modules.require(['Heatmap'], function (Heatmap) {
+                    heatmap = new Heatmap(data1);
+                    heatmap.setMap(myMap);
+                });
+            },
+            error: function(result) {
+            }
+        }).done((msg) => {
+            }
+        )
+    }
+</script>
+
+<div class="row p-3">
+    <div class="col-md-4"></div>
+    <div class="col-md-4 text-center">
+        <h1>Карта ям на дорогах</h1>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+<div class="row p-3">
+    <div class="col-md-3"></div>
+    <div class="col-md-6" id="map" style="width:600px; height: 600px"></div>
+    <div class="col-md-3"></div>
+</div>
+
+<div class="row" >
+    <div class="col-md-5"></div>
+    <div class="col-md-2 text-center">
+        <a th:href="@{/stats}" class="btn btn-primary btn-lg" role="button">Статистика</a>
+<!--        <input  type="button" class="btn btn-primary btn-lg" value="Статистика" name="stats" id="stats"><a th:href="@{/stats}">Sdsd</a> </input>-->
+    </div>
+    <div class="col-md-5"></div>
+</div>
+
+</body>
+</html>

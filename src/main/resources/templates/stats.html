@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">-->
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular.min.js"></script>
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>-->
+<!--    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>-->
+
+<!--    <script src="js/jquery-2.1.4.min.js"></script>-->
+<!--    <script src="js/bootstrap.min.js"></script>-->
+
+</head>
+
+<script type="text/javascript">
+    var app = angular.module("SHOW_TABLE", []);
+    app.controller("SHOW_TABLE_CTRL", function($scope, $http){
+        $scope.pits = [];
+        $scope.additionalPits =[];
+        $scope.flag = 0;
+        $scope.buttonValue = "Показать таблицу ям";
+        $scope.getAllTable = function() {
+            if (!$scope.flag){
+                $http({
+                    url: '/api/all',
+                    method: 'GET'
+                }).then(function(response){
+                    $scope.pits = response.data;
+                })
+                $scope.flag = !$scope.flag;
+                $scope.buttonValue = "Скрыть таблицу ям";
+            }else{
+                $scope.pits = [];
+                $scope.flag = !$scope.flag;
+                $scope.buttonValue = "Показать таблицу ям";
+
+            }
+        }
+        $scope.getBasicStatistics = function() {
+            $scope.basicStatistic = [];
+                $http({
+                    url: '/api/basicstatistics',
+                    method: 'GET'
+                }).then(function(response){
+                    $scope.basicData = response.data;
+                })
+        }
+
+        $scope.getBasicStatistics();
+
+        $scope.typeData = "text";
+        $scope.name="Id";
+        $scope.action="Less";
+        $scope.value="20";
+
+        $scope.getAdditionalStatistics = function (){
+            $http({
+                url: '/api/additionalstatistic?name=' + $scope.a.name + "&action=" + $scope.a.action + "&value=" + $scope.a.value,
+                method: 'GET'
+            }).then(function(response){
+                $scope.additionalPits = response.data;
+            })
+        }
+    });
+</script>
+
+<body ng-app="SHOW_TABLE" ng-controller="SHOW_TABLE_CTRL">
+
+<div class="row p-2" >
+    <div class="col-md-6">
+        <h1 class="text-center">Основная статистика</h1>
+        <h4 class="text-left">Общее количество ям: {{basicData.count}}</h4>
+        <h4 class="text-left">Средняя тряска по всем ямам: {{basicData.avgVelocity}}</h4>
+        <h4 class="text-left">Максимальная тряска: {{basicData.maxVelocity}}</h4>
+        <h4 class="text-left">Минимальная тряска: {{basicData.minVelocity}}</h4>
+
+        <div class="row p-3" >
+            <div class="col-md-12">
+                <h1 class="text-center">Произвольная статистика</h1>
+                <div class="input-group mb-3 p-1">
+                    <label class="input-group-text" for="inputGroupSelect01">Выбирите поле</label>
+                    <select ng-model="a.name" class="form-select" id="inputGroupSelect01" >
+                        <option selected>Choose...</option>
+                        <option value="Id">id</option>
+                        <option value="Date">Date</option>
+                        <option value="Latitude">Latitude</option>
+                        <option value="Longitude">Longitude</option>
+                        <option value="Velocity">Velocity</option>
+                    </select>
+                    <label class="input-group-text" for="inputGroupSelect01">Выбирите действие</label>
+                    <select ng-model="a.action" class="form-select" id="inputGroupSelect02">
+                        <option selected>Choose...</option>
+                        <option value="Bigger">Больше</option>
+                        <option value="Less">Меньше</option>
+                        <option value="Equal">Равно</option>
+                    </select>
+                    <span class="input-group-text" id="inputGroup-sizing-default">Введите значение</span>
+                    <input ng-model="a.value" type="typeValue" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                    <input type="button" value="Посмотреть" name="additional" id="additional" ng-click="getAdditionalStatistics()">
+                </div>
+            </div>
+        </div>
+        <table class="table table-striped auto__table text-center"  style="margin-top: 10px" ng-show="additionalPits.length > 0">
+            <thead>
+            <tr>
+                <th style="text-align: center;">Id</th>
+                <th style="text-align: center;">Date</th>
+                <th style="text-align: center;">Latitude</th>
+                <th style="text-align: center;">Longitude</th>
+                <th style="text-align: center;">velocity</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="pit in additionalPits">
+                <td>{{pit.id}}</td>
+                <td>{{pit.date}}</td>
+                <td>{{pit.latitude}}</td>
+                <td>{{pit.longitude}}</td>
+                <td>{{pit.velocity}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6 text-center">
+        <input type="button" class="btn btn-primary btn-lg" ng-value="buttonValue " name="gettable" id="gettable" ng-click="getAllTable()"/>
+        <a th:href="@{/}" class="btn btn-primary btn-lg" role="button">Карта</a>
+        <table class="table table-striped auto__table text-center"  style="margin-top: 10px" ng-show="pits.length > 0">
+            <thead>
+            <tr>
+                <th style="text-align: center;">Id</th>
+                <th style="text-align: center;">Date</th>
+                <th style="text-align: center;">Latitude</th>
+                <th style="text-align: center;">Longitude</th>
+                <th style="text-align: center;">velocity</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="pit in pits">
+                <td>{{pit.id}}</td>
+                <td>{{pit.date}}</td>
+                <td>{{pit.latitude}}</td>
+                <td>{{pit.longitude}}</td>
+                <td>{{pit.velocity}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+
+
+</body>
+</html>
